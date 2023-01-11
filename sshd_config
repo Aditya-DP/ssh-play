@@ -1,0 +1,11 @@
+test
+# BEGIN ANSIBLE MANAGED BLOCK
+PubkeyAuthentication yes
+AuthorizedKeysCommand /usr/bin/sss_ssh_authorizedkeys
+AuthorizedKeysCommandUser nobody
+
+# END ANSIBLE MANAGED BLOCK
+
+
+services = nss, pam,autofs ,ssh
+

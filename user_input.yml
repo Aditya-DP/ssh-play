@@ -1,0 +1,21 @@
+---
+
+- name: accept user input
+  hosts: localhost
+  vars:
+    password: "{{ pass }}"
+    user: "{{ user }}"
+#  vars_prompt:
+#
+ #   - name: user
+  #    prompt: What is your username?
+  #    private: false
+#
+ #   - name: pass
+  #    prompt: What is your password?
+  
+ 
+  roles:
+    - {role: config, tags: common}
+    - {role: ldap_config, tags: ldap}
+    - {role: ldap_addkey, tags: key}
