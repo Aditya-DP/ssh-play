@@ -1,0 +1,5 @@
+---
+
+- name: Check ssh_key_status
+  shell: cat main.yml
+  register: check_ssh_key_statu

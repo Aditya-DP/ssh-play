@@ -1,0 +1,3 @@
+sshcommand: "AuthorizedKeysCommand /usr/bin/sss_ssh_authorizedkeys"
+sshuser: "AuthorizedKeysCommandUser nobody"
+pubkey_auth: "PubkeyAuthentication yes"

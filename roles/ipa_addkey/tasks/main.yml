@@ -1,0 +1,34 @@
+---
+- name: Create ssh directory if not exists
+  ansible.builtin.shell:
+    cmd: sshpass -p "{{ pass }}" ssh "{{ user }}"@cn01.omnia.test mkdir -p test
+  register: verify_rsa_id_file
+
+- name: Check is ssh key pair available
+  ansible.builtin.shell:
+    cmd: sshpass -p "{{ pass }}" ssh "{{ user }}"@cn01.omnia.test ls .ssh
+  register: ssh_key
+
+- name: check and create ssh key pair if not exists
+  block:
+  - name: create ssh key pair
+    ansible.builtin.shell:
+      cmd:sshpass -p "{{ pass }}" ssh "{{ user }}"@cn01.omnia.test "ssh-keygen -C {{ user }} -q -N '' -f test/key"
+    register: err
+  - debug:
+      var: err
+  when: ssh_key is not search ("test")
+
+- name: get ipa status
+
+  service:
+    name: ipa.service
+  register: var1
+
+- name: ipa check
+  block:
+  - name: add key
+    ansible.builtin.shell:
+      cmd: sshpass -p "{{ pass }}" ssh "{{ user }}"@cn01.omnia.test "ipa user-mod "{{ user }}" --sshpubkey="$(cat test/test)""
+    register: t1
+  when: ("inactive" not in var1.status.ActiveState)

@@ -1,0 +1,7 @@
+---
+- name: Search schema
+  ansible.builtin.shell: ldapsearch -Y EXTERNAL -H ldapi:/// -b cn=schema,cn=config
+  register: schema
+- debug:
+    msg: "Im here"
+#  when: schema.stdout is search ("ssh")

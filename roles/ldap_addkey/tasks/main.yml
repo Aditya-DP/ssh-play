@@ -1,0 +1,33 @@
+---
+
+#- name: Generate ssh key pair
+#  ansible.builtin.shell: 
+#   sshpass -p "{{ pass }}" ssh "{{ user }}"@cn3.omnia.test cat .ssh/id_rsa.pub
+#  register: err
+#- debug:
+#    var: err.stdout_lines
+
+#- name : Create ssh ldif file
+#  ansible.builtin.shell:
+#     cmd: sshpass -p "{{ password }}" ssh "{{ user }}"@cn3.omnia.test "echo -e dn':' uid=user3,ou=people,dc=controlnode,dc=omnia,dc=test'\'nchangeType':' modify  '\n'add':'objectClass'\n'objectClass':'ldapPublicKey'\n'-'\n'add':' sshPublicKey'\n'sshPublicKey':' ssh-rsa {{ err.stdout }} >> test1"
+#    cmd: sshpass -p "{{ password }}" ssh "{{ user }}"@cn3.omnia.test "echo -e dn':' uid=user3,ou=people,dc=controlnode,dc=omnia,dc=test'\'nchangeType':' modify" >> test1"
+#  register: err1  
+#- debug:
+ #   var: err1
+
+
+#- name: Search schema
+#  ansible.builtin.shell: ldapsearch -Y EXTERNAL -H ldapi:/// -b cn=schema,cn=config
+#  register: schema
+#- debug:
+#    msg: "Found"
+#  when: schema.stdout is not search ("ssh")
+
+
+- name: configure node
+  ansible.builtin.shell: ldapsearch -Y EXTERNAL -H ldapi:/// -b cn=schema,cn=config
+  register: schema
+
+- name: search
+  include_tasks: schema_search.yml
+  when: schema.stdout is search ("ssh")
