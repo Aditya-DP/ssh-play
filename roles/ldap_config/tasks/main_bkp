@@ -1,0 +1,7 @@
+---
+- name: Return motd to registered var
+  ansible.builtin.command: ldapadd -Y EXTERNAL -H ldapi:/// -f /root/sample_ansible/roles/ldap_config/tasks/addpubkeys.ldif
+  register: output
+
+- debug:
+    msg: 'test'

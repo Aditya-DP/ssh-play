@@ -1,0 +1,7 @@
+[manager]
+node1.omnia.test
+
+[compute]
+node2.omnia.test
+node3.omnia.test
+

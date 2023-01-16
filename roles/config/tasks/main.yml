@@ -1,21 +1,20 @@
 ---
-
-- name: change sshd config
-  blockinfile:
+- name: Change sshd config
+  ansible.builtin.blockinfile:
     path: "/etc/ssh/sshd_config"
-    block: "{{ lookup('template','ssh_config') }}"
+    block: "{{ lookup('template', 'ssh_config') }}"
 
-- name: change sssd config
-  lineinfile:
-    path: /root/sample_ansible/sshd_config
+- name: Change sssd config
+  ansible.builtin.lineinfile:
+    path: /etc/sssd/sssd.conf
     backrefs: true
     regexp: '^(services = nss, pam,autofs)$'
     line: '\1 ,ssh'
 
 - name: Restart sssd and sshd
-  service:
+  ansible.builtin.service:
     name: "{{ item }}"
     state: restarted
   loop:
-    - httpd.service
+    - sssd.service
     - sshd.service
