@@ -1,33 +1,24 @@
 ---
+- name: Create ssh directory if not exists
+  ansible.builtin.command: sshpass -p "{{ password }}" ssh "{{ username }}"@"{{ groups['manager'][0] }}" mkdir -p .ssh
 
-#- name: Generate ssh key pair
-#  ansible.builtin.shell: 
-#   sshpass -p "{{ pass }}" ssh "{{ user }}"@cn3.omnia.test cat .ssh/id_rsa.pub
-#  register: err
-#- debug:
-#    var: err.stdout_lines
+- name: Check if ssh key pair available
+  ansible.builtin.command: sshpass -p "{{ password }}" ssh "{{ username }}"@"{{ groups['manager'][0] }}" ls .ssh
+  register: ssh_key
 
-#- name : Create ssh ldif file
-#  ansible.builtin.shell:
-#     cmd: sshpass -p "{{ password }}" ssh "{{ user }}"@cn3.omnia.test "echo -e dn':' uid=user3,ou=people,dc=controlnode,dc=omnia,dc=test'\'nchangeType':' modify  '\n'add':'objectClass'\n'objectClass':'ldapPublicKey'\n'-'\n'add':' sshPublicKey'\n'sshPublicKey':' ssh-rsa {{ err.stdout }} >> test1"
-#    cmd: sshpass -p "{{ password }}" ssh "{{ user }}"@cn3.omnia.test "echo -e dn':' uid=user3,ou=people,dc=controlnode,dc=omnia,dc=test'\'nchangeType':' modify" >> test1"
-#  register: err1  
-#- debug:
- #   var: err1
+- name: Check and create ssh key pair if not exists
+  block:
+  - name: Create ssh key pair
+    ansible.builtin.command: sshpass -p "{{ password }}" ssh "{{ username }}"@"{{ groups['manager'][0] }}" "ssh-keygen -C {{ username }} -q -N '' -f .ssh/id_rsa"
+    register: err
+  - debug:
+      var: err
+  when: ssh_key is not search ("id_rsa")
 
+- name: Create ldif file to add ssh public key to LDAP user invetory
+  ansible.builtin.command: sshpass -p "{{ password }}" ssh "{{ username }}"@"{{ groups['manager'][0] }}" "echo -e dn':' uid='{{ username }}',ou=people,dc=controlplane,dc=omnia,dc=test'\'nchangeType':' modify'\n'add':'objectClass'\n'objectClass':'ldapPublicKey'\n'-'\n'add':' sshPublicKey'\n'sshPublicKey':' $(cat .ssh/id_rsa.pub) > sshpubkey.ldif"
 
-#- name: Search schema
-#  ansible.builtin.shell: ldapsearch -Y EXTERNAL -H ldapi:/// -b cn=schema,cn=config
-#  register: schema
-#- debug:
-#    msg: "Found"
-#  when: schema.stdout is not search ("ssh")
-
-
-- name: configure node
-  ansible.builtin.shell: ldapsearch -Y EXTERNAL -H ldapi:/// -b cn=schema,cn=config
-  register: schema
-
-- name: search
-  include_tasks: schema_search.yml
-  when: schema.stdout is search ("ssh")
+- name : Add public key to ldap
+  ansible.builtin.shell: sshpass -p "{{ password }}" ssh "{{ username }}"@"{{ groups['manager'][0] }}" "ldapmodify -x -D "cn=admin,dc=controlplane,dc=omnia,dc=test" -w Dell123 -H ldap://controlplane.omnia.test -f sshpubkey.ldif"
+  register: t
+- debug: var=t

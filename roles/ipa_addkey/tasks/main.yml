@@ -1,19 +1,16 @@
 ---
 - name: Create ssh directory if not exists
-  ansible.builtin.shell:
-    cmd: sshpass -p "{{ pass }}" ssh "{{ user }}"@cn01.omnia.test mkdir -p test
-  register: verify_rsa_id_file
+  ansible.builtin.shell: sshpass -p "{{ password }}" ssh "{{ username }}"@"{{ groups['manager'][0] }}" mkdir -p test
+  register: Directory_err
 
 - name: Check is ssh key pair available
-  ansible.builtin.shell:
-    cmd: sshpass -p "{{ pass }}" ssh "{{ user }}"@cn01.omnia.test ls .ssh
+  ansible.builtin.shell: sshpass -p "{{ pass }}" ssh "{{ user }}"@"{{ groups['manager'][0] }}" ls .ssh
   register: ssh_key
 
 - name: check and create ssh key pair if not exists
   block:
   - name: create ssh key pair
-    ansible.builtin.shell:
-      cmd:sshpass -p "{{ pass }}" ssh "{{ user }}"@cn01.omnia.test "ssh-keygen -C {{ user }} -q -N '' -f test/key"
+    ansible.builtin.shell: sshpass -p "{{ pass }}" ssh "{{ user }}"@"{{ groups['manager'][0] }}" "ssh-keygen -C {{ user }} -q -N '' -f test/key"
     register: err
   - debug:
       var: err
@@ -28,7 +25,6 @@
 - name: ipa check
   block:
   - name: add key
-    ansible.builtin.shell:
-      cmd: sshpass -p "{{ pass }}" ssh "{{ user }}"@cn01.omnia.test "ipa user-mod "{{ user }}" --sshpubkey="$(cat test/test)""
+    ansible.builtin.shell: sshpass -p "{{ pass }}" ssh "{{ user }}"@"{{ groups['manager'][0] }}" "ipa user-mod "{{ user }}" --sshpubkey="$(cat .ssh/id_rsa.pub)""
     register: t1
   when: ("inactive" not in var1.status.ActiveState)

@@ -1,21 +1,40 @@
 ---
 
-- name: accept user input
+- name: Accept user input
   hosts: localhost
   vars:
-    password: "{{ pass }}"
-    user: "{{ user }}"
-#  vars_prompt:
-#
- #   - name: user
-  #    prompt: What is your username?
-  #    private: false
-#
- #   - name: pass
-  #    prompt: What is your password?
-  
- 
+    password: "{{ password }}"
+    username: "{{ username }}"
+
+- name: Common configurations
+  hosts: manager, compute
   roles:
-    - {role: config, tags: common}
-    - {role: ldap_config, tags: ldap}
-    - {role: ldap_addkey, tags: key}
+    - config
+  tags: common
+
+- name: Ldap Config
+  hosts: localhost
+  roles:
+    - ldap_config
+  tags: ldap_config
+
+- name: LDAP Add ssh key
+  hosts: manager
+  roles:
+    - ldap_addkey
+  tags: ldap_addkey
+
+- name: Ipa Config and add SSH public key
+  hosts: manager
+  roles:
+    - ipa_addkey
+  tags: ipa
+
+- hosts: all
+  tasks:
+  - name: Update SSS Cache to update ssh public keys
+    ansible.builtin.shell: sss_cache -E
+    register: t
+    
+    tags: always
+ 

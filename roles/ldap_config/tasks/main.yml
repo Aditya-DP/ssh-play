@@ -1,7 +1,11 @@
 ---
-- name: Return motd to registered var
-  ansible.builtin.command: ldapadd -Y EXTERNAL -H ldapi:/// -f /root/sample_ansible/roles/ldap_config/tasks/addpubkeys.ldif
-  register: output
+- name: Search schema
+  ansible.builtin.command: ldapsearch -Y EXTERNAL -H ldapi:/// -b cn=schema,cn=config
+  register: schema
 
-- debug:
-    msg: 'test'
+- name: Verify and modify ldap schema
+  block:
+    - name: Modify schema
+      ansible.builtin.command: ldapadd -Y EXTERNAL -H ldapi:/// -f addpubkeys.ldif
+      register: Schema_modify
+  when: schema is not search ("ssh")
